@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import ChatInterface from "@/app/chat/_components/chat-interface";
 import VirtualSpace from "@/app/chat/_components/virtual-space";
@@ -18,6 +18,7 @@ export default function ChatPage() {
   const [showUserPanel, setShowUserPanel] = useState(false);
   const [activeTab, setActiveTab] = useState("chat");
   const [displayMediaStatus, setDisplayMediaStatus] = useState("stop");
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   // まず、localStorageからユーザー名を取得し、なければログインページへリダイレクト
   useEffect(() => {
@@ -100,12 +101,13 @@ export default function ChatPage() {
     setActiveTab(tab);
   };
 
-  const videoElem = document.getElementById("video") as HTMLVideoElement;
 
   /**
    * 画面キャプチャ開始
    */
   const startCapture = async () => {
+    if (!videoRef.current) return;
+    const videoElem = videoRef.current;
     const options = { audio: true, video: true };
     const stream = await navigator.mediaDevices.getDisplayMedia(options);
     videoElem.srcObject = stream;
@@ -116,6 +118,8 @@ export default function ChatPage() {
    * 画面キャプチャ停止
    */
   const stopCapture = () => {
+    if (!videoRef.current) return;
+    const videoElem = videoRef.current;
     if (videoElem.srcObject) {
       const tracks = videoElem.srcObject as MediaStream;
 
@@ -160,7 +164,7 @@ export default function ChatPage() {
             onUserMove={handleUserMove}
             typingUsers={typingUsers}
           />
-          <video id="video" autoPlay playsInline muted></video>
+          <video id="video" ref={videoRef} autoPlay playsInline muted></video>
         </div>
 
         <div className="flex flex-col w-full md:w-1/2 lg:w-2/5">
